@@ -1,9 +1,9 @@
 package com.xxl.rpc.core.remoting.invoker.route.impl;
 
-import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
-
 import java.util.Random;
 import java.util.TreeSet;
+
+import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
 
 /**
  * random

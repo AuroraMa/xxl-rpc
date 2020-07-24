@@ -11,8 +11,8 @@ public class UserDTO implements Serializable {
     private String name;
     private String word;
 
-    public UserDTO() {
-    }
+    public UserDTO() {}
+
     public UserDTO(String name, String word) {
         this.name = name;
         this.word = word;
@@ -36,10 +36,7 @@ public class UserDTO implements Serializable {
 
     @Override
     public String toString() {
-        return "UserDTO{" +
-                "name='" + name + '\'' +
-                ", word='" + word + '\'' +
-                '}';
+        return "UserDTO{" + "name='" + name + '\'' + ", word='" + word + '\'' + '}';
     }
 
 }

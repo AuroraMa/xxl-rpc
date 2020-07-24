@@ -1,23 +1,21 @@
 package com.xxl.rpc.core.remoting.provider;
 
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.xxl.rpc.core.registry.Register;
 import com.xxl.rpc.core.remoting.net.Server;
-import com.xxl.rpc.core.remoting.net.impl.netty.server.NettyServer;
 import com.xxl.rpc.core.remoting.net.params.BaseCallback;
 import com.xxl.rpc.core.remoting.net.params.XxlRpcRequest;
 import com.xxl.rpc.core.remoting.net.params.XxlRpcResponse;
-import com.xxl.rpc.core.serialize.Serializer;
-import com.xxl.rpc.core.serialize.impl.HessianSerializer;
 import com.xxl.rpc.core.util.IpUtil;
 import com.xxl.rpc.core.util.NetUtil;
 import com.xxl.rpc.core.util.ThrowableUtil;
 import com.xxl.rpc.core.util.XxlRpcException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * provider
@@ -25,236 +23,184 @@ import java.util.Map;
  * @author xuxueli 2015-10-31 22:54:27
  */
 public class XxlRpcProviderFactory {
-	private static final Logger logger = LoggerFactory.getLogger(XxlRpcProviderFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(XxlRpcProviderFactory.class);
 
-	// ---------------------- config ----------------------
+    /**
+     * server 启动 基础 config
+     */
+    private ProviderConfig providerConfig;
 
-	private Class<? extends Server> server = NettyServer.class;
-	private Class<? extends Serializer> serializer = HessianSerializer.class;
+    /**
+     * server服务接口 map
+     */
+    private Map<String, Object> serviceData = new HashMap<String, Object>();
 
-	private int corePoolSize = 60;
-	private int maxPoolSize = 300;
+    /**
+     * start / stop
+     */
+    public void start() throws Exception {
+        logger.debug("XxlRpcProviderFactory.start()");
+        // 校验 provider 基础参数
+        if (this.providerConfig.getServer() == null) {
+            throw new XxlRpcException("xxl-rpc provider server missing.");
+        }
+        if (this.providerConfig.getSerializer() == null) {
+            throw new XxlRpcException("xxl-rpc provider serializer missing.");
+        }
+        if (!(this.providerConfig.getCorePoolSize() > 0 && this.providerConfig.getMaxPoolSize() > 0
+            && this.providerConfig.getMaxPoolSize() >= this.providerConfig.getCorePoolSize())) {
+            this.providerConfig.setCorePoolSize(60);
+            this.providerConfig.setMaxPoolSize(300);
+        }
+        if (this.providerConfig.getIp() == null) {
+            this.providerConfig.setIp(IpUtil.getIp());
+        }
+        if (this.providerConfig.getPort() <= 0) {
+            this.providerConfig.setPort(7080);
+        }
+        if (this.providerConfig.getRegistryAddress() == null
+            || this.providerConfig.getRegistryAddress().trim().length() == 0) {
+            this.providerConfig
+                .setRegistryAddress(IpUtil.getIpPort(this.providerConfig.getIp(), this.providerConfig.getPort()));
+        }
+        if (NetUtil.isPortUsed(this.providerConfig.getPort())) {
+            throw new XxlRpcException("xxl-rpc provider port[" + this.providerConfig.getPort() + "] is used.");
+        }
 
-	private String ip = null;					// server ip, for registry
-	private int port = 7080;					// server default port
-	private String registryAddress;				// default use registryAddress to registry , otherwise use ip:port if registryAddress is null
-	private String accessToken = null;
+        // start server
+        Server serverInstance = this.providerConfig.getServer().newInstance();
 
-	private Class<? extends Register> serviceRegistry = null;
-	private Map<String, String> serviceRegistryParam = null;
+        // serviceRegistry started
+        serverInstance.setStartedCallback(new BaseCallback() {
+            @Override
+            public void run() throws Exception {
+                // start registry
+                if (providerConfig.getServiceRegistry() != null) {
+                    Register registerInstance = providerConfig.getServiceRegistry().newInstance();
+                    registerInstance.start(providerConfig.getServiceRegistryParam());
+                    if (serviceData.size() > 0) {
+                        registerInstance.registry(serviceData.keySet(), providerConfig.getRegistryAddress());
+                    }
+                }
+            }
+        });
+        // serviceRegistry stoped
+        serverInstance.setStopedCallback(new BaseCallback() {
+            @Override
+            public void run() throws IllegalAccessException, InstantiationException {
+                // stop registry
+                Register registerInstance = providerConfig.getServiceRegistry().newInstance();
+                if (registerInstance != null) {
+                    if (serviceData.size() > 0) {
+                        registerInstance.remove(serviceData.keySet(), providerConfig.getRegistryAddress());
+                    }
+                    registerInstance.stop();
+                }
+            }
+        });
+        serverInstance.start(this);
+    }
 
-	// set
-	public void setServer(Class<? extends Server> server) {
-		this.server = server;
-	}
-	public void setSerializer(Class<? extends Serializer> serializer) {
-		this.serializer = serializer;
-	}
-	public void setCorePoolSize(int corePoolSize) {
-		this.corePoolSize = corePoolSize;
-	}
-	public void setMaxPoolSize(int maxPoolSize) {
-		this.maxPoolSize = maxPoolSize;
-	}
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-	public void setPort(int port) {
-		this.port = port;
-	}
-	public void setRegistryAddress(String registryAddress) {
-		this.registryAddress = registryAddress;
-	}
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
-	}
-	public void setServiceRegistry(Class<? extends Register> serviceRegistry) {
-		this.serviceRegistry = serviceRegistry;
-	}
+    public void stop() throws Exception {
+        logger.debug("XxlRpcProviderFactory.stop()");
+        // stop server
+        this.providerConfig.getServer().newInstance().stop();
+    }
 
-	public void setServiceRegistryParam(Map<String, String> serviceRegistryParam) {
-		this.serviceRegistryParam = serviceRegistryParam;
-	}
+    // ---------------------- server invoke ----------------------
 
-	// get
-	public Serializer getSerializerInstance() {
-		return serializerInstance;
-	}
-	public int getPort() {
-		return port;
-	}
-	public int getCorePoolSize() {
-		return corePoolSize;
-	}
-	public int getMaxPoolSize() {
-		return maxPoolSize;
-	}
+    /**
+     * make service key
+     *
+     * @param iface
+     * @param version
+     * @return
+     */
+    public static String makeServiceKey(String iface, String version) {
+        String serviceKey = iface;
+        if (version != null && version.trim().length() > 0) {
+            serviceKey += "#".concat(version);
+        }
+        return serviceKey;
+    }
 
-	// ---------------------- start / stop ----------------------
+    /**
+     * add service
+     *
+     * @param iface
+     * @param version
+     * @param serviceBean
+     */
+    public void addService(String iface, String version, Object serviceBean) {
+        String serviceKey = makeServiceKey(iface, version);
+        serviceData.put(serviceKey, serviceBean);
 
-	private Server serverInstance;
-	private Serializer serializerInstance;
-	private Register registerInstance;
+        logger.info(">>>>>>>>>>> xxl-rpc, provider factory add service success. serviceKey = {}, serviceBean = {}",
+            serviceKey, serviceBean.getClass());
+    }
 
-	public void start() throws Exception {
+    /**
+     * invoke service
+     *
+     * @param xxlRpcRequest
+     * @return
+     */
+    public XxlRpcResponse invokeService(XxlRpcRequest xxlRpcRequest) {
+        logger.debug("XxlRpcProviderFactory.invokeService()");
+        // make response
+        XxlRpcResponse xxlRpcResponse = new XxlRpcResponse();
+        xxlRpcResponse.setRequestId(xxlRpcRequest.getRequestId());
 
-		// valid
-		if (this.server == null) {
-			throw new XxlRpcException("xxl-rpc provider server missing.");
-		}
-		if (this.serializer==null) {
-			throw new XxlRpcException("xxl-rpc provider serializer missing.");
-		}
-		if (!(this.corePoolSize>0 && this.maxPoolSize>0 && this.maxPoolSize>=this.corePoolSize)) {
-			this.corePoolSize = 60;
-			this.maxPoolSize = 300;
-		}
-		if (this.ip == null) {
-			this.ip = IpUtil.getIp();
-		}
-		if (this.port <= 0) {
-			this.port = 7080;
-		}
-		if (this.registryAddress==null || this.registryAddress.trim().length()==0) {
-			this.registryAddress = IpUtil.getIpPort(this.ip, this.port);
-		}
-		if (NetUtil.isPortUsed(this.port)) {
-			throw new XxlRpcException("xxl-rpc provider port["+ this.port +"] is used.");
-		}
+        // 获取要执行的接口
+        String serviceKey = makeServiceKey(xxlRpcRequest.getClassName(), xxlRpcRequest.getVersion());
+        Object serviceBean = serviceData.get(serviceKey);
 
-		// init serializerInstance
-		this.serializerInstance = serializer.newInstance();
+        // 校验执行接口是否存在（是否注册）
+        if (serviceBean == null) {
+            xxlRpcResponse.setErrorMsg("The serviceKey[" + serviceKey + "] not found.");
+            return xxlRpcResponse;
+        }
+        // 校验是否请求超时
+        if (System.currentTimeMillis() - xxlRpcRequest.getCreateMillisTime() > 3 * 60 * 1000) {
+            xxlRpcResponse.setErrorMsg("The timestamp difference between admin and executor exceeds the limit.");
+            return xxlRpcResponse;
+        }
+        // 校验AccessToken
+        if (providerConfig.getAccessToken() != null && providerConfig.getAccessToken().trim().length() > 0
+            && !providerConfig.getAccessToken().trim().equals(xxlRpcRequest.getAccessToken())) {
+            xxlRpcResponse.setErrorMsg("The access token[" + xxlRpcRequest.getAccessToken() + "] is wrong.");
+            return xxlRpcResponse;
+        }
 
-		// start server
-		serverInstance = server.newInstance();
-		serverInstance.setStartedCallback(new BaseCallback() {		// serviceRegistry started
-			@Override
-			public void run() throws Exception {
-				// start registry
-				if (serviceRegistry != null) {
-					registerInstance = serviceRegistry.newInstance();
-					registerInstance.start(serviceRegistryParam);
-					if (serviceData.size() > 0) {
-						registerInstance.registry(serviceData.keySet(), registryAddress);
-					}
-				}
-			}
-		});
-		serverInstance.setStopedCallback(new BaseCallback() {		// serviceRegistry stoped
-			@Override
-			public void run() {
-				// stop registry
-				if (registerInstance != null) {
-					if (serviceData.size() > 0) {
-						registerInstance.remove(serviceData.keySet(), registryAddress);
-					}
-					registerInstance.stop();
-					registerInstance = null;
-				}
-			}
-		});
-		serverInstance.start(this);
-	}
-
-	public void  stop() throws Exception {
-		// stop server
-		serverInstance.stop();
-	}
-
-
-	// ---------------------- server invoke ----------------------
-
-	/**
-	 * init local rpc service map
-	 */
-	private Map<String, Object> serviceData = new HashMap<String, Object>();
-	public Map<String, Object> getServiceData() {
-		return serviceData;
-	}
-
-	/**
-	 * make service key
-	 *
-	 * @param iface
-	 * @param version
-	 * @return
-	 */
-	public static String makeServiceKey(String iface, String version){
-		String serviceKey = iface;
-		if (version!=null && version.trim().length()>0) {
-			serviceKey += "#".concat(version);
-		}
-		return serviceKey;
-	}
-
-	/**
-	 * add service
-	 *
-	 * @param iface
-	 * @param version
-	 * @param serviceBean
-	 */
-	public void addService(String iface, String version, Object serviceBean){
-		String serviceKey = makeServiceKey(iface, version);
-		serviceData.put(serviceKey, serviceBean);
-
-		logger.info(">>>>>>>>>>> xxl-rpc, provider factory add service success. serviceKey = {}, serviceBean = {}", serviceKey, serviceBean.getClass());
-	}
-
-	/**
-	 * invoke service
-	 *
-	 * @param xxlRpcRequest
-	 * @return
-	 */
-	public XxlRpcResponse invokeService(XxlRpcRequest xxlRpcRequest) {
-
-		//  make response
-		XxlRpcResponse xxlRpcResponse = new XxlRpcResponse();
-		xxlRpcResponse.setRequestId(xxlRpcRequest.getRequestId());
-
-		// match service bean
-		String serviceKey = makeServiceKey(xxlRpcRequest.getClassName(), xxlRpcRequest.getVersion());
-		Object serviceBean = serviceData.get(serviceKey);
-
-		// valid
-		if (serviceBean == null) {
-			xxlRpcResponse.setErrorMsg("The serviceKey["+ serviceKey +"] not found.");
-			return xxlRpcResponse;
-		}
-
-		if (System.currentTimeMillis() - xxlRpcRequest.getCreateMillisTime() > 3*60*1000) {
-			xxlRpcResponse.setErrorMsg("The timestamp difference between admin and executor exceeds the limit.");
-			return xxlRpcResponse;
-		}
-		if (accessToken!=null && accessToken.trim().length()>0 && !accessToken.trim().equals(xxlRpcRequest.getAccessToken())) {
-			xxlRpcResponse.setErrorMsg("The access token[" + xxlRpcRequest.getAccessToken() + "] is wrong.");
-			return xxlRpcResponse;
-		}
-
-		try {
-			// invoke
-			Class<?> serviceClass = serviceBean.getClass();
-			String methodName = xxlRpcRequest.getMethodName();
-			Class<?>[] parameterTypes = xxlRpcRequest.getParameterTypes();
-			Object[] parameters = xxlRpcRequest.getParameters();
+        try {
+            // invoke
+            Class<?> serviceClass = serviceBean.getClass();
+            String methodName = xxlRpcRequest.getMethodName();
+            Class<?>[] parameterTypes = xxlRpcRequest.getParameterTypes();
+            Object[] parameters = xxlRpcRequest.getParameters();
 
             Method method = serviceClass.getMethod(methodName, parameterTypes);
             method.setAccessible(true);
-			Object result = method.invoke(serviceBean, parameters);
+            Object result = method.invoke(serviceBean, parameters);
+            xxlRpcResponse.setResult(result);
+        } catch (Throwable t) {
+            // catch error
+            logger.error("xxl-rpc provider invokeService error.", t);
+            xxlRpcResponse.setErrorMsg(ThrowableUtil.toString(t));
+        }
+        return xxlRpcResponse;
+    }
 
-			/*FastClass serviceFastClass = FastClass.create(serviceClass);
-			FastMethod serviceFastMethod = serviceFastClass.getMethod(methodName, parameterTypes);
-			Object result = serviceFastMethod.invoke(serviceBean, parameters);*/
+    public ProviderConfig getProviderConfig() {
+        return providerConfig;
+    }
 
-			xxlRpcResponse.setResult(result);
-		} catch (Throwable t) {
-			// catch error
-			logger.error("xxl-rpc provider invokeService error.", t);
-			xxlRpcResponse.setErrorMsg(ThrowableUtil.toString(t));
-		}
+    public void setProviderConfig(ProviderConfig providerConfig) {
+        this.providerConfig = providerConfig;
+    }
 
-		return xxlRpcResponse;
-	}
+    public Map<String, Object> getServiceData() {
+        return serviceData;
+    }
 
 }

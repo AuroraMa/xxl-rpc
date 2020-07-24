@@ -1,15 +1,16 @@
 package com.xxl.rpc.core.remoting.net.common;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.xxl.rpc.core.remoting.invoker.XxlRpcInvokerFactory;
 import com.xxl.rpc.core.remoting.invoker.reference.XxlRpcReferenceBean;
 import com.xxl.rpc.core.remoting.net.params.BaseCallback;
 import com.xxl.rpc.core.remoting.net.params.XxlRpcRequest;
 import com.xxl.rpc.core.serialize.Serializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * @author xuxueli 2018-10-19
@@ -18,26 +19,19 @@ public abstract class ConnectClient {
     protected static transient Logger logger = LoggerFactory.getLogger(ConnectClient.class);
 
     // ---------------------- iface ----------------------
-
-    public abstract void init(String address, final Serializer serializer, final XxlRpcInvokerFactory xxlRpcInvokerFactory) throws Exception;
-
-    public abstract void close();
-
-    public abstract boolean isValidate();
-
-    public abstract void send(XxlRpcRequest xxlRpcRequest) throws Exception ;
-
-
-    // ---------------------- client pool map ----------------------
+    // (static) alread addStopCallBack
+    private static volatile ConcurrentMap<String, ConnectClient> connectClientMap;
+    private static volatile ConcurrentMap<String, Object> connectClientLockMap = new ConcurrentHashMap<>();
 
     /**
      * async send
      */
     public static void asyncSend(XxlRpcRequest xxlRpcRequest, String address,
-                                 Class<? extends ConnectClient> connectClientImpl,
-                                 final XxlRpcReferenceBean xxlRpcReferenceBean) throws Exception {
+        Class<? extends ConnectClient> connectClientImpl, final XxlRpcReferenceBean xxlRpcReferenceBean)
+        throws Exception {
 
-        // client pool	[tips03 : may save 35ms/100invoke if move it to constructor, but it is necessary. cause by ConcurrentHashMap.get]
+        // client pool [tips03 : may save 35ms/100invoke if move it to constructor, but it is necessary. cause by
+        // ConcurrentHashMap.get]
         ConnectClient clientPool = ConnectClient.getPool(address, connectClientImpl, xxlRpcReferenceBean);
 
         try {
@@ -49,10 +43,8 @@ public abstract class ConnectClient {
 
     }
 
-    private static volatile ConcurrentMap<String, ConnectClient> connectClientMap;        // (static) alread addStopCallBack
-    private static volatile ConcurrentMap<String, Object> connectClientLockMap = new ConcurrentHashMap<>();
     private static ConnectClient getPool(String address, Class<? extends ConnectClient> connectClientImpl,
-                                         final XxlRpcReferenceBean xxlRpcReferenceBean) throws Exception {
+        final XxlRpcReferenceBean xxlRpcReferenceBean) throws Exception {
 
         // init base compont, avoid repeat init
         if (connectClientMap == null) {
@@ -65,7 +57,7 @@ public abstract class ConnectClient {
                         @Override
                         public void run() throws Exception {
                             if (connectClientMap.size() > 0) {
-                                for (String key: connectClientMap.keySet()) {
+                                for (String key : connectClientMap.keySet()) {
                                     ConnectClient clientPool = connectClientMap.get(key);
                                     clientPool.close();
                                 }
@@ -79,7 +71,7 @@ public abstract class ConnectClient {
 
         // get-valid client
         ConnectClient connectClient = connectClientMap.get(address);
-        if (connectClient!=null && connectClient.isValidate()) {
+        if (connectClient != null && connectClient.isValidate()) {
             return connectClient;
         }
 
@@ -95,7 +87,7 @@ public abstract class ConnectClient {
 
             // get-valid client, avlid repeat
             connectClient = connectClientMap.get(address);
-            if (connectClient!=null && connectClient.isValidate()) {
+            if (connectClient != null && connectClient.isValidate()) {
                 return connectClient;
             }
 
@@ -108,7 +100,8 @@ public abstract class ConnectClient {
             // set pool
             ConnectClient connectClient_new = connectClientImpl.newInstance();
             try {
-                connectClient_new.init(address, xxlRpcReferenceBean.getSerializerInstance(), xxlRpcReferenceBean.getInvokerFactory());
+                connectClient_new.init(address, xxlRpcReferenceBean.getSerializerInstance(),
+                    xxlRpcReferenceBean.getInvokerFactory());
                 connectClientMap.put(address, connectClient_new);
             } catch (Exception e) {
                 connectClient_new.close();
@@ -119,5 +112,16 @@ public abstract class ConnectClient {
         }
 
     }
+
+    // ---------------------- client pool map ----------------------
+
+    public abstract void init(String address, final Serializer serializer,
+        final XxlRpcInvokerFactory xxlRpcInvokerFactory) throws Exception;
+
+    public abstract void close();
+
+    public abstract boolean isValidate();
+
+    public abstract void send(XxlRpcRequest xxlRpcRequest) throws Exception;
 
 }

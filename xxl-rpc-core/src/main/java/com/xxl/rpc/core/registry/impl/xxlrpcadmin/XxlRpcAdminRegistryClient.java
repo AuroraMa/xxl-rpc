@@ -1,14 +1,15 @@
 package com.xxl.rpc.core.registry.impl.xxlrpcadmin;
 
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.util.json.BasicJson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.util.json.BasicJson;
 
 /**
  * registry client, auto heatbeat registry info, auto monitor discovery info
@@ -18,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 public class XxlRpcAdminRegistryClient {
     private static Logger logger = LoggerFactory.getLogger(XxlRpcAdminRegistryClient.class);
 
-
     private volatile Set<XxlRpcAdminRegistryDataParamVO> registryData = new HashSet<>();
     private volatile ConcurrentMap<String, TreeSet<String>> discoveryData = new ConcurrentHashMap<>();
 
@@ -26,12 +26,13 @@ public class XxlRpcAdminRegistryClient {
     private Thread discoveryThread;
     private volatile boolean registryThreadStop = false;
 
-
     private XxlRpcAdminRegistryBaseClient registryBaseClient;
 
     public XxlRpcAdminRegistryClient(String adminAddress, String accessToken, String biz, String env) {
         registryBaseClient = new XxlRpcAdminRegistryBaseClient(adminAddress, accessToken, biz, env);
-        logger.info(">>>>>>>>>>> xxl-rpc, XxlRpcAdminRegistryClient init .... [adminAddress={}, accessToken={}, biz={}, env={}]", adminAddress, accessToken, biz, env);
+        logger.info(
+            ">>>>>>>>>>> xxl-rpc, XxlRpcAdminRegistryClient init .... [adminAddress={}, accessToken={}, biz={}, env={}]",
+            adminAddress, accessToken, biz, env);
 
         // registry thread
         registryThread = new Thread(new Runnable() {
@@ -41,8 +42,10 @@ public class XxlRpcAdminRegistryClient {
                     try {
                         if (registryData.size() > 0) {
 
-                            boolean ret = registryBaseClient.registry(new ArrayList<XxlRpcAdminRegistryDataParamVO>(registryData));
-                            logger.debug(">>>>>>>>>>> xxl-rpc, refresh registry data {}, registryData = {}", ret?"success":"fail",registryData);
+                            boolean ret = registryBaseClient
+                                .registry(new ArrayList<XxlRpcAdminRegistryDataParamVO>(registryData));
+                            logger.debug(">>>>>>>>>>> xxl-rpc, refresh registry data {}, registryData = {}",
+                                ret ? "success" : "fail", registryData);
                         }
                     } catch (Exception e) {
                         if (!registryThreadStop) {
@@ -84,7 +87,7 @@ public class XxlRpcAdminRegistryClient {
                             boolean monitorRet = registryBaseClient.monitor(discoveryData.keySet());
 
                             // avoid fail-retry request too quick
-                            if (!monitorRet){
+                            if (!monitorRet) {
                                 TimeUnit.SECONDS.sleep(10);
                             }
 
@@ -108,7 +111,6 @@ public class XxlRpcAdminRegistryClient {
         logger.info(">>>>>>>>>>> xxl-rpc, XxlRegistryClient init success.");
     }
 
-
     public void stop() {
         registryThreadStop = true;
         if (registryThread != null) {
@@ -119,24 +121,25 @@ public class XxlRpcAdminRegistryClient {
         }
     }
 
-
     /**
      * registry
      *
      * @param registryDataList
      * @return
      */
-    public boolean registry(List<XxlRpcAdminRegistryDataParamVO> registryDataList){
+    public boolean registry(List<XxlRpcAdminRegistryDataParamVO> registryDataList) {
 
         // valid
-        if (registryDataList==null || registryDataList.size()==0) {
+        if (registryDataList == null || registryDataList.size() == 0) {
             throw new RuntimeException("xxl-rpc registryDataList empty");
         }
-        for (XxlRpcAdminRegistryDataParamVO registryParam: registryDataList) {
-            if (registryParam.getKey()==null || registryParam.getKey().trim().length()<4 || registryParam.getKey().trim().length()>255) {
+        for (XxlRpcAdminRegistryDataParamVO registryParam : registryDataList) {
+            if (registryParam.getKey() == null || registryParam.getKey().trim().length() < 4
+                || registryParam.getKey().trim().length() > 255) {
                 throw new RuntimeException("xxl-rpc registryDataList#key Invalid[4~255]");
             }
-            if (registryParam.getValue()==null || registryParam.getValue().trim().length()<4 || registryParam.getValue().trim().length()>255) {
+            if (registryParam.getValue() == null || registryParam.getValue().trim().length() < 4
+                || registryParam.getValue().trim().length() > 255) {
                 throw new RuntimeException("xxl-rpc registryDataList#value Invalid[4~255]");
             }
         }
@@ -150,8 +153,6 @@ public class XxlRpcAdminRegistryClient {
         return true;
     }
 
-
-
     /**
      * remove
      *
@@ -160,14 +161,16 @@ public class XxlRpcAdminRegistryClient {
      */
     public boolean remove(List<XxlRpcAdminRegistryDataParamVO> registryDataList) {
         // valid
-        if (registryDataList==null || registryDataList.size()==0) {
+        if (registryDataList == null || registryDataList.size() == 0) {
             throw new RuntimeException("xxl-rpc registryDataList empty");
         }
-        for (XxlRpcAdminRegistryDataParamVO registryParam: registryDataList) {
-            if (registryParam.getKey()==null || registryParam.getKey().trim().length()<4 || registryParam.getKey().trim().length()>255) {
+        for (XxlRpcAdminRegistryDataParamVO registryParam : registryDataList) {
+            if (registryParam.getKey() == null || registryParam.getKey().trim().length() < 4
+                || registryParam.getKey().trim().length() > 255) {
                 throw new RuntimeException("xxl-rpc registryDataList#key Invalid[4~255]");
             }
-            if (registryParam.getValue()==null || registryParam.getValue().trim().length()<4 || registryParam.getValue().trim().length()>255) {
+            if (registryParam.getValue() == null || registryParam.getValue().trim().length() < 4
+                || registryParam.getValue().trim().length() > 255) {
                 throw new RuntimeException("xxl-rpc registryDataList#value Invalid[4~255]");
             }
         }
@@ -181,7 +184,6 @@ public class XxlRpcAdminRegistryClient {
         return true;
     }
 
-
     /**
      * discovery
      *
@@ -189,7 +191,7 @@ public class XxlRpcAdminRegistryClient {
      * @return
      */
     public Map<String, TreeSet<String>> discovery(Set<String> keys) {
-        if (keys==null || keys.size() == 0) {
+        if (keys == null || keys.size() == 0) {
             return null;
         }
 
@@ -224,8 +226,8 @@ public class XxlRpcAdminRegistryClient {
     /**
      * refreshDiscoveryData, some or all
      */
-    private void refreshDiscoveryData(Set<String> keys){
-        if (keys==null || keys.size() == 0) {
+    private void refreshDiscoveryData(Set<String> keys) {
+        if (keys == null || keys.size() == 0) {
             return;
         }
 
@@ -233,8 +235,8 @@ public class XxlRpcAdminRegistryClient {
         Map<String, TreeSet<String>> updatedData = new HashMap<>();
 
         Map<String, TreeSet<String>> keyValueListData = registryBaseClient.discovery(keys);
-        if (keyValueListData!=null) {
-            for (String keyItem: keyValueListData.keySet()) {
+        if (keyValueListData != null) {
+            for (String keyItem : keyValueListData.keySet()) {
 
                 // list > set
                 TreeSet<String> valueSet = new TreeSet<>();
@@ -243,7 +245,7 @@ public class XxlRpcAdminRegistryClient {
                 // valid if updated
                 boolean updated = true;
                 TreeSet<String> oldValSet = discoveryData.get(keyItem);
-                if (oldValSet!=null && BasicJson.toJson(oldValSet).equals(BasicJson.toJson(valueSet))) {
+                if (oldValSet != null && BasicJson.toJson(oldValSet).equals(BasicJson.toJson(valueSet))) {
                     updated = false;
                 }
 
@@ -262,9 +264,8 @@ public class XxlRpcAdminRegistryClient {
         logger.debug(">>>>>>>>>>> xxl-rpc, refresh discovery data finish, discoveryData = {}", discoveryData);
     }
 
-
     public TreeSet<String> discovery(String key) {
-        if (key==null) {
+        if (key == null) {
             return null;
         }
 
@@ -274,6 +275,5 @@ public class XxlRpcAdminRegistryClient {
         }
         return null;
     }
-
 
 }

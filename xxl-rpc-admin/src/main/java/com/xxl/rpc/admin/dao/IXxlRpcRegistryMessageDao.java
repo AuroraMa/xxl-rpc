@@ -1,10 +1,11 @@
 package com.xxl.rpc.admin.dao;
 
-import com.xxl.rpc.admin.core.model.XxlRpcRegistryMessage;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.xxl.rpc.admin.core.model.XxlRpcRegistryMessage;
 
 /**
  * @author xuxueli 2018-11-20

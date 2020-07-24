@@ -1,19 +1,16 @@
 package com.xxl.rpc.core.registry.impl.xxlrpcadmin.util.json;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author xuxueli 2018-11-30
  */
 public class BasicJsonwriter {
-    private static Logger logger = LoggerFactory.getLogger(BasicJsonwriter.class);
-
-
     private static final String STR_SLASH = "\"";
     private static final String STR_SLASH_STR = "\":";
     private static final String STR_COMMA = ",";
@@ -21,8 +18,8 @@ public class BasicJsonwriter {
     private static final String STR_OBJECT_RIGHT = "}";
     private static final String STR_ARRAY_LEFT = "[";
     private static final String STR_ARRAY_RIGHT = "]";
-
     private static final Map<String, Field[]> cacheFields = new HashMap<>();
+    private static Logger logger = LoggerFactory.getLogger(BasicJsonwriter.class);
 
     /**
      * write object to json
@@ -57,14 +54,15 @@ public class BasicJsonwriter {
      *
      * @param key
      * @param value
-     * @param json  "key":value or value
+     * @param json
+     *            "key":value or value
      */
     private void writeObjItem(String key, Object value, StringBuilder json) {
 
         /*if ("serialVersionUID".equals(key)
                 || value instanceof Logger) {
             // pass
-
+        
             return;
         }*/
 
@@ -76,31 +74,24 @@ public class BasicJsonwriter {
         // val
         if (value == null) {
             json.append("null");
-        } else if (value instanceof String
-                || value instanceof Byte
-                || value instanceof CharSequence) {
+        } else if (value instanceof String || value instanceof Byte || value instanceof CharSequence) {
             // string
 
             json.append(STR_SLASH).append(value.toString()).append(STR_SLASH);
-        } else if ( value instanceof Boolean
-                || value instanceof Short
-                || value instanceof Integer
-                || value instanceof Long
-                || value instanceof Float
-                || value instanceof Double
-                ) {
+        } else if (value instanceof Boolean || value instanceof Short || value instanceof Integer
+            || value instanceof Long || value instanceof Float || value instanceof Double) {
             // number
 
             json.append(value);
         } else if (value instanceof Object[] || value instanceof Collection) {
-            // collection | array     //  Array.getLength(array);   // Array.get(array, i);
+            // collection | array // Array.getLength(array); // Array.get(array, i);
 
             Collection valueColl = null;
             if (value instanceof Object[]) {
-                Object[] valueArr = (Object[]) value;
+                Object[] valueArr = (Object[])value;
                 valueColl = Arrays.asList(valueArr);
             } else if (value instanceof Collection) {
-                valueColl = (Collection) value;
+                valueColl = (Collection)value;
             }
 
             json.append(STR_ARRAY_LEFT);
@@ -116,7 +107,7 @@ public class BasicJsonwriter {
         } else if (value instanceof Map) {
             // map
 
-            Map<?, ?> valueMap = (Map<?, ?>) value;
+            Map<?, ?> valueMap = (Map<?, ?>)value;
 
             json.append(STR_OBJECT_LEFT);
             if (!valueMap.isEmpty()) {
@@ -153,7 +144,7 @@ public class BasicJsonwriter {
         if (cacheFields.containsKey(cacheKey)) {
             return cacheFields.get(cacheKey);
         }
-        Field[] fields = getAllDeclaredFields(clazz);    //clazz.getDeclaredFields();
+        Field[] fields = getAllDeclaredFields(clazz); // clazz.getDeclaredFields();
         cacheFields.put(cacheKey, fields);
         return fields;
     }
@@ -189,7 +180,5 @@ public class BasicJsonwriter {
             field.setAccessible(false);
         }
     }
-
-
 
 }

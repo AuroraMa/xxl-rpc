@@ -1,13 +1,13 @@
 package com.xxl.rpc.admin.service;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.web.context.request.async.DeferredResult;
 
 import com.xxl.rpc.admin.core.model.XxlRpcRegistry;
 import com.xxl.rpc.admin.core.model.XxlRpcRegistryData;
 import com.xxl.rpc.admin.core.result.ReturnT;
-import org.springframework.web.context.request.async.DeferredResult;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author xuxueli 2016-5-28 15:30:33
@@ -15,11 +15,13 @@ import java.util.Map;
 public interface IXxlRpcRegistryService {
 
     // admin
-    Map<String,Object> pageList(int start, int length, String biz, String env, String key);
-    ReturnT<String> delete(int id);
-    ReturnT<String> update(XxlRpcRegistry xxlRpcRegistry);
-    ReturnT<String> add(XxlRpcRegistry xxlRpcRegistry);
+    Map<String, Object> pageList(int start, int length, String biz, String env, String key);
 
+    ReturnT<String> delete(int id);
+
+    ReturnT<String> update(XxlRpcRegistry xxlRpcRegistry);
+
+    ReturnT<String> add(XxlRpcRegistry xxlRpcRegistry);
 
     // ------------------------ remote registry ------------------------
 

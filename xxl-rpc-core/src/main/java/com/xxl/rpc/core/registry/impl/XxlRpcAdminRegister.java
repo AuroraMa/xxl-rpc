@@ -1,10 +1,10 @@
 package com.xxl.rpc.core.registry.impl;
 
+import java.util.*;
+
+import com.xxl.rpc.core.registry.Register;
 import com.xxl.rpc.core.registry.impl.xxlrpcadmin.XxlRpcAdminRegistryClient;
 import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
-import com.xxl.rpc.core.registry.Register;
-
-import java.util.*;
 
 /**
  * application registry for "xxl-rpc-admin"
@@ -19,6 +19,7 @@ public class XxlRpcAdminRegister extends Register {
     public static final String ENV = "ENV";
 
     private XxlRpcAdminRegistryClient xxlRpcAdminRegistryClient;
+
     public XxlRpcAdminRegistryClient getXxlRpcAdminRegistryClient() {
         return xxlRpcAdminRegistryClient;
     }
@@ -31,8 +32,8 @@ public class XxlRpcAdminRegister extends Register {
         String env = param.get(ENV);
 
         // fill
-        biz = (biz!=null&&biz.trim().length()>0)?biz:"default";
-        env = (env!=null&&env.trim().length()>0)?env:"default";
+        biz = (biz != null && biz.trim().length() > 0) ? biz : "default";
+        env = (env != null && env.trim().length() > 0) ? env : "default";
 
         xxlRpcAdminRegistryClient = new XxlRpcAdminRegistryClient(xxlRegistryAddress, accessToken, biz, env);
     }
@@ -46,13 +47,13 @@ public class XxlRpcAdminRegister extends Register {
 
     @Override
     public boolean registry(Set<String> keys, String value) {
-        if (keys==null || keys.size() == 0 || value==null || value.trim().length()==0) {
+        if (keys == null || keys.size() == 0 || value == null || value.trim().length() == 0) {
             return false;
         }
 
         // init
         List<XxlRpcAdminRegistryDataParamVO> registryDataList = new ArrayList<>();
-        for (String key:keys) {
+        for (String key : keys) {
             registryDataList.add(new XxlRpcAdminRegistryDataParamVO(key, value));
         }
 
@@ -61,13 +62,13 @@ public class XxlRpcAdminRegister extends Register {
 
     @Override
     public boolean remove(Set<String> keys, String value) {
-        if (keys==null || keys.size() == 0 || value==null || value.trim().length()==0) {
+        if (keys == null || keys.size() == 0 || value == null || value.trim().length() == 0) {
             return false;
         }
 
         // init
         List<XxlRpcAdminRegistryDataParamVO> registryDataList = new ArrayList<>();
-        for (String key:keys) {
+        for (String key : keys) {
             registryDataList.add(new XxlRpcAdminRegistryDataParamVO(key, value));
         }
 

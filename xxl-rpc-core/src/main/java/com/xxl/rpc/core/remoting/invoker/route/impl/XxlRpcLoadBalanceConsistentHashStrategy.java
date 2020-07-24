@@ -1,18 +1,18 @@
 package com.xxl.rpc.core.remoting.invoker.route.impl;
 
-import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
-
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
 
 /**
  * consustent hash
  *
- * 单个JOB对应的每个执行器，使用频率最低的优先被选举
- *      a(*)、LFU(Least Frequently Used)：最不经常使用，频率/次数
- *      b、LRU(Least Recently Used)：最近最久未使用，时间
+ * 单个JOB对应的每个执行器，使用频率最低的优先被选举 a(*)、LFU(Least Frequently Used)：最不经常使用，频率/次数 b、LRU(Least Recently Used)：最近最久未使用，时间
  *
  * @author xuxueli 2018-12-04
  */
@@ -22,6 +22,7 @@ public class XxlRpcLoadBalanceConsistentHashStrategy extends XxlRpcLoadBalance {
 
     /**
      * get hash code on 2^32 ring (md5散列的方式计算hash值)
+     * 
      * @param key
      * @return
      */
@@ -46,10 +47,8 @@ public class XxlRpcLoadBalanceConsistentHashStrategy extends XxlRpcLoadBalance {
         byte[] digest = md5.digest();
 
         // hash code, Truncate to 32-bits
-        long hashCode = ((long) (digest[3] & 0xFF) << 24)
-                | ((long) (digest[2] & 0xFF) << 16)
-                | ((long) (digest[1] & 0xFF) << 8)
-                | (digest[0] & 0xFF);
+        long hashCode = ((long)(digest[3] & 0xFF) << 24) | ((long)(digest[2] & 0xFF) << 16)
+            | ((long)(digest[1] & 0xFF) << 8) | (digest[0] & 0xFF);
 
         long truncateHashCode = hashCode & 0xffffffffL;
         return truncateHashCode;
@@ -60,7 +59,7 @@ public class XxlRpcLoadBalanceConsistentHashStrategy extends XxlRpcLoadBalance {
         // ------A1------A2-------A3------
         // -----------J1------------------
         TreeMap<Long, String> addressRing = new TreeMap<Long, String>();
-        for (String address: addressSet) {
+        for (String address : addressSet) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
                 long addressHash = hash("SHARD-" + address + "-NODE-" + i);
                 addressRing.put(addressHash, address);

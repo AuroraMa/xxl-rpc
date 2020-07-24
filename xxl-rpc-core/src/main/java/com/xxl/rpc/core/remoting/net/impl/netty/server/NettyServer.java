@@ -1,5 +1,8 @@
 package com.xxl.rpc.core.remoting.net.impl.netty.server;
 
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import com.xxl.rpc.core.remoting.net.Server;
 import com.xxl.rpc.core.remoting.net.impl.netty.codec.NettyDecoder;
 import com.xxl.rpc.core.remoting.net.impl.netty.codec.NettyEncoder;
@@ -7,7 +10,9 @@ import com.xxl.rpc.core.remoting.net.params.Beat;
 import com.xxl.rpc.core.remoting.net.params.XxlRpcRequest;
 import com.xxl.rpc.core.remoting.net.params.XxlRpcResponse;
 import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
+import com.xxl.rpc.core.serialize.Serializer;
 import com.xxl.rpc.core.util.ThreadPoolUtil;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -17,8 +22,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * netty rpc server
@@ -31,41 +34,40 @@ public class NettyServer extends Server {
 
     @Override
     public void start(final XxlRpcProviderFactory xxlRpcProviderFactory) throws Exception {
-
+        // init serializerInstance
+        Serializer serializer = xxlRpcProviderFactory.getProviderConfig().getSerializer().newInstance();
         thread = new Thread(new Runnable() {
             @Override
             public void run() {
 
                 // param
                 final ThreadPoolExecutor serverHandlerPool = ThreadPoolUtil.makeServerThreadPool(
-                        NettyServer.class.getSimpleName(),
-                        xxlRpcProviderFactory.getCorePoolSize(),
-                        xxlRpcProviderFactory.getMaxPoolSize());
+                    NettyServer.class.getSimpleName(), xxlRpcProviderFactory.getProviderConfig().getCorePoolSize(),
+                    xxlRpcProviderFactory.getProviderConfig().getMaxPoolSize());
+
                 EventLoopGroup bossGroup = new NioEventLoopGroup();
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
-
                 try {
                     // start server
                     ServerBootstrap bootstrap = new ServerBootstrap();
-                    bootstrap.group(bossGroup, workerGroup)
-                            .channel(NioServerSocketChannel.class)
-                            .childHandler(new ChannelInitializer<SocketChannel>() {
-                                @Override
-                                public void initChannel(SocketChannel channel) throws Exception {
-                                    channel.pipeline()
-                                            .addLast(new IdleStateHandler(0,0, Beat.BEAT_INTERVAL*3, TimeUnit.SECONDS))     // beat 3N, close if idle
-                                            .addLast(new NettyDecoder(XxlRpcRequest.class, xxlRpcProviderFactory.getSerializerInstance()))
-                                            .addLast(new NettyEncoder(XxlRpcResponse.class, xxlRpcProviderFactory.getSerializerInstance()))
-                                            .addLast(new NettyServerHandler(xxlRpcProviderFactory, serverHandlerPool));
-                                }
-                            })
-                            .childOption(ChannelOption.TCP_NODELAY, true)
-                            .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            public void initChannel(SocketChannel channel) throws Exception {
+                                channel.pipeline()
+                                    // beat
+                                    .addLast(new IdleStateHandler(0, 0, Beat.BEAT_INTERVAL * 3, TimeUnit.SECONDS))
+                                    .addLast(new NettyDecoder(XxlRpcRequest.class, serializer))
+                                    .addLast(new NettyEncoder(XxlRpcResponse.class, serializer))
+                                    .addLast(new NettyServerHandler(xxlRpcProviderFactory, serverHandlerPool));
+                            }
+                        }).childOption(ChannelOption.TCP_NODELAY, true).childOption(ChannelOption.SO_KEEPALIVE, true);
 
                     // bind
-                    ChannelFuture future = bootstrap.bind(xxlRpcProviderFactory.getPort()).sync();
+                    ChannelFuture future = bootstrap.bind(xxlRpcProviderFactory.getProviderConfig().getPort()).sync();
 
-                    logger.info(">>>>>>>>>>> xxl-rpc remoting server start success, nettype = {}, port = {}", NettyServer.class.getName(), xxlRpcProviderFactory.getPort());
+                    logger.info(">>>>>>>>>>> xxl-rpc remoting server start success, nettype = {}, port = {}",
+                        NettyServer.class.getName(), xxlRpcProviderFactory.getProviderConfig().getPort());
                     onStarted();
 
                     // wait util stop
@@ -81,7 +83,7 @@ public class NettyServer extends Server {
 
                     // stop
                     try {
-                        serverHandlerPool.shutdown();    // shutdownNow
+                        serverHandlerPool.shutdown(); // shutdownNow
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }

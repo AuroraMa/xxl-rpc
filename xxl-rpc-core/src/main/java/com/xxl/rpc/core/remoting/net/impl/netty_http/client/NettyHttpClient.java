@@ -1,8 +1,8 @@
 package com.xxl.rpc.core.remoting.net.impl.netty_http.client;
 
 import com.xxl.rpc.core.remoting.net.Client;
-import com.xxl.rpc.core.remoting.net.params.XxlRpcRequest;
 import com.xxl.rpc.core.remoting.net.common.ConnectClient;
+import com.xxl.rpc.core.remoting.net.params.XxlRpcRequest;
 
 /**
  * netty_http client

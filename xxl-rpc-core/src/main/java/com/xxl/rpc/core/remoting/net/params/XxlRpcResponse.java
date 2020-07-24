@@ -7,14 +7,12 @@ import java.io.Serializable;
  *
  * @author xuxueli 2015-10-29 19:39:54
  */
-public class XxlRpcResponse implements Serializable{
-	private static final long serialVersionUID = 42L;
+public class XxlRpcResponse implements Serializable {
+    private static final long serialVersionUID = 42L;
 
-
-	private String requestId;
+    private String requestId;
     private String errorMsg;
     private Object result;
-
 
     public String getRequestId() {
         return requestId;
@@ -42,11 +40,8 @@ public class XxlRpcResponse implements Serializable{
 
     @Override
     public String toString() {
-        return "XxlRpcResponse{" +
-                "requestId='" + requestId + '\'' +
-                ", errorMsg='" + errorMsg + '\'' +
-                ", result=" + result +
-                '}';
+        return "XxlRpcResponse{" + "requestId='" + requestId + '\'' + ", errorMsg='" + errorMsg + '\'' + ", result="
+            + result + '}';
     }
 
 }

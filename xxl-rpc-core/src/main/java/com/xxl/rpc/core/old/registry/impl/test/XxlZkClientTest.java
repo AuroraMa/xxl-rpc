@@ -1,31 +1,31 @@
-//package com.xxl.rpc.core.test;
+// package com.xxl.rpc.core.test;
 //
-//import com.xxl.rpc.core.util.XxlZkClient;
+// import com.xxl.rpc.core.util.XxlZkClient;
 //
-//import java.util.concurrent.TimeUnit;
+// import java.util.concurrent.TimeUnit;
 //
-//public class XxlZkClientTest {
+// public class XxlZkClientTest {
 //
-//    public static void main(String[] args) throws InterruptedException {
+// public static void main(String[] args) throws InterruptedException {
 //
-//        XxlZkClient client = null;
-//        try {
-//            client = new XxlZkClient("127.0.0.1:2181", "/xxl-rpc/test", null, null);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+// XxlZkClient client = null;
+// try {
+// client = new XxlZkClient("127.0.0.1:2181", "/xxl-rpc/test", null, null);
+// } catch (Exception e) {
+// e.printStackTrace();
+// }
 //
 //
-//        for (int i = 0; i < 100; i++) {
-//            System.out.println("------------- " + i);
-//            try {
-//                System.out.println(client.getClient());
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//            TimeUnit.SECONDS.sleep(5);
-//        }
+// for (int i = 0; i < 100; i++) {
+// System.out.println("------------- " + i);
+// try {
+// System.out.println(client.getClient());
+// } catch (Exception e) {
+// e.printStackTrace();
+// }
+// TimeUnit.SECONDS.sleep(5);
+// }
 //
-//    }
+// }
 //
-//}
+// }

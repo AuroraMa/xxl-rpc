@@ -1,11 +1,10 @@
 package com.xxl.rpc.core.remoting.invoker.impl;
 
-import com.xxl.rpc.core.registry.Register;
-import com.xxl.rpc.core.remoting.invoker.XxlRpcInvokerFactory;
-import com.xxl.rpc.core.remoting.invoker.annotation.XxlRpcReference;
-import com.xxl.rpc.core.remoting.invoker.reference.XxlRpcReferenceBean;
-import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
-import com.xxl.rpc.core.util.XxlRpcException;
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -16,24 +15,30 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
 import org.springframework.util.ReflectionUtils;
 
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.xxl.rpc.core.registry.Register;
+import com.xxl.rpc.core.remoting.invoker.XxlRpcInvokerFactory;
+import com.xxl.rpc.core.remoting.invoker.annotation.XxlRpcReference;
+import com.xxl.rpc.core.remoting.invoker.reference.XxlRpcReferenceBean;
+import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
+import com.xxl.rpc.core.util.XxlRpcException;
 
 /**
  * xxl-rpc invoker factory, init service-registry and spring-bean by annotation (for spring)
  *
  * @author xuxueli 2018-10-19
  */
-public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProcessorAdapter implements InitializingBean,DisposableBean, BeanFactoryAware {
+public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProcessorAdapter
+    implements InitializingBean, DisposableBean, BeanFactoryAware {
     private Logger logger = LoggerFactory.getLogger(XxlRpcSpringInvokerFactory.class);
 
     // ---------------------- config ----------------------
 
-    private Class<? extends Register> serviceRegistryClass;          // class.forname
+    private Class<? extends Register> serviceRegistryClass; // class.forname
     private Map<String, String> serviceRegistryParam;
+    private XxlRpcInvokerFactory xxlRpcInvokerFactory;
+    private BeanFactory beanFactory;
 
+    // ---------------------- util ----------------------
 
     public void setServiceRegistryClass(Class<? extends Register> serviceRegistryClass) {
         this.serviceRegistryClass = serviceRegistryClass;
@@ -42,11 +47,6 @@ public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProces
     public void setServiceRegistryParam(Map<String, String> serviceRegistryParam) {
         this.serviceRegistryParam = serviceRegistryParam;
     }
-
-
-    // ---------------------- util ----------------------
-
-    private XxlRpcInvokerFactory xxlRpcInvokerFactory;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -88,7 +88,6 @@ public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProces
                     referenceBean.setInvokeCallback(null);
                     referenceBean.setInvokerFactory(xxlRpcInvokerFactory);
 
-
                     // get proxyObj
                     Object serviceProxy = null;
                     try {
@@ -101,8 +100,10 @@ public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProces
                     field.setAccessible(true);
                     field.set(bean, serviceProxy);
 
-                    logger.info(">>>>>>>>>>> xxl-rpc, invoker factory init reference bean success. serviceKey = {}, bean.field = {}.{}",
-                            XxlRpcProviderFactory.makeServiceKey(iface.getName(), rpcReference.version()), beanName, field.getName());
+                    logger.info(
+                        ">>>>>>>>>>> xxl-rpc, invoker factory init reference bean success. serviceKey = {}, bean.field = {}.{}",
+                        XxlRpcProviderFactory.makeServiceKey(iface.getName(), rpcReference.version()), beanName,
+                        field.getName());
 
                     // collection
                     String serviceKey = XxlRpcProviderFactory.makeServiceKey(iface.getName(), rpcReference.version());
@@ -124,15 +125,12 @@ public class XxlRpcSpringInvokerFactory extends InstantiationAwareBeanPostProces
         return super.postProcessAfterInstantiation(bean, beanName);
     }
 
-
     @Override
     public void destroy() throws Exception {
 
         // stop invoker factory
         xxlRpcInvokerFactory.stop();
     }
-
-    private BeanFactory beanFactory;
 
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {

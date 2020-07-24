@@ -1,14 +1,13 @@
 package com.xxl.rpc.admin.test.client;
 
-
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.XxlRpcAdminRegistryBaseClient;
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.XxlRpcAdminRegistryBaseClient;
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
 
 /**
  * @author xuxueli 2018-11-30
@@ -16,7 +15,8 @@ import java.util.concurrent.TimeUnit;
 public class XxlRpcAdminRegistryBaseClientTest {
 
     public static void main(String[] args) throws InterruptedException {
-        XxlRpcAdminRegistryBaseClient registryClient = new XxlRpcAdminRegistryBaseClient("http://localhost:8080/xxl-rpc-admin/", null, "xxl-rpc", "test");
+        XxlRpcAdminRegistryBaseClient registryClient =
+            new XxlRpcAdminRegistryBaseClient("http://localhost:8080/xxl-rpc-admin/", null, "xxl-rpc", "test");
 
         // registry test
         List<XxlRpcAdminRegistryDataParamVO> registryDataList = new ArrayList<>();
@@ -30,7 +30,6 @@ public class XxlRpcAdminRegistryBaseClientTest {
         keys.add("service01");
         keys.add("service02");
         System.out.println("discovery:" + registryClient.discovery(keys));
-
 
         // remove test
         System.out.println("remove:" + registryClient.remove(registryDataList));

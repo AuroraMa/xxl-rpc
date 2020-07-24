@@ -1,11 +1,10 @@
 package com.xxl.rpc.admin.core.util;
 
+import java.io.*;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.net.URL;
-import java.util.Properties;
 
 /**
  * prop util
@@ -18,7 +17,8 @@ public class PropUtil {
     /**
      * load prop
      *
-     * @param propertyFileName disk path when start with "file:", other classpath
+     * @param propertyFileName
+     *            disk path when start with "file:", other classpath
      * @return
      */
     public static Properties loadProp(String propertyFileName) {
@@ -61,7 +61,7 @@ public class PropUtil {
      * @param filePathName
      * @return
      */
-    public static boolean writeProp(Properties properties, String filePathName){
+    public static boolean writeProp(Properties properties, String filePathName) {
         FileOutputStream fileOutputStream = null;
         try {
 
@@ -74,7 +74,7 @@ public class PropUtil {
             // write data
             fileOutputStream = new FileOutputStream(file, false);
             properties.store(new OutputStreamWriter(fileOutputStream, "utf-8"), null);
-            //properties.store(new FileWriter(filePathName), null);
+            // properties.store(new FileWriter(filePathName), null);
             return true;
         } catch (IOException e) {
             logger.error(e.getMessage(), e);

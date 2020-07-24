@@ -13,7 +13,7 @@ public final class Beat {
     public static XxlRpcRequest BEAT_PING;
 
     static {
-        BEAT_PING = new XxlRpcRequest(){};
+        BEAT_PING = new XxlRpcRequest() {};
         BEAT_PING.setRequestId(BEAT_ID);
     }
 

@@ -7,19 +7,15 @@ import com.xxl.rpc.core.remoting.invoker.route.impl.*;
  */
 public enum LoadBalance {
 
-    RANDOM(new XxlRpcLoadBalanceRandomStrategy()),
-    ROUND(new XxlRpcLoadBalanceRoundStrategy()),
-    LRU(new XxlRpcLoadBalanceLRUStrategy()),
-    LFU(new XxlRpcLoadBalanceLFUStrategy()),
+    RANDOM(new XxlRpcLoadBalanceRandomStrategy()), ROUND(new XxlRpcLoadBalanceRoundStrategy()),
+    LRU(new XxlRpcLoadBalanceLRUStrategy()), LFU(new XxlRpcLoadBalanceLFUStrategy()),
     CONSISTENT_HASH(new XxlRpcLoadBalanceConsistentHashStrategy());
-
 
     public final XxlRpcLoadBalance xxlRpcInvokerRouter;
 
     private LoadBalance(XxlRpcLoadBalance xxlRpcInvokerRouter) {
         this.xxlRpcInvokerRouter = xxlRpcInvokerRouter;
     }
-
 
     public static LoadBalance match(String name, LoadBalance defaultRouter) {
         for (LoadBalance item : LoadBalance.values()) {
@@ -30,8 +26,6 @@ public enum LoadBalance {
         return defaultRouter;
     }
 
-
-
     /*public static void main(String[] args) {
         String serviceKey = "service";
         TreeSet<String> addressSet = new TreeSet<String>(){{
@@ -41,7 +35,7 @@ public enum LoadBalance {
             add("4");
             add("5");
         }};
-
+    
         for (LoadBalance item : LoadBalance.values()) {
             long start = System.currentTimeMillis();
             for (int i = 0; i < 100000; i++) {
@@ -51,8 +45,7 @@ public enum LoadBalance {
             long end = System.currentTimeMillis();
             System.out.println(item.name() + " --- " + (end-start));
         }
-
+    
     }*/
-
 
 }

@@ -1,10 +1,11 @@
 package com.xxl.rpc.admin.dao;
 
-import com.xxl.rpc.admin.core.model.XxlRpcRegistry;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+import com.xxl.rpc.admin.core.model.XxlRpcRegistry;
 
 /**
  * @author xuxueli 2018-11-20
@@ -12,20 +13,13 @@ import java.util.List;
 @Mapper
 public interface IXxlRpcRegistryDao {
 
-    public List<XxlRpcRegistry> pageList(@Param("offset") int offset,
-                                         @Param("pagesize") int pagesize,
-                                         @Param("biz") String biz,
-                                         @Param("env") String env,
-                                         @Param("key") String key);
-    public int pageListCount(@Param("offset") int offset,
-                             @Param("pagesize") int pagesize,
-                             @Param("biz") String biz,
-                             @Param("env") String env,
-                             @Param("key") String key);
+    public List<XxlRpcRegistry> pageList(@Param("offset") int offset, @Param("pagesize") int pagesize,
+        @Param("biz") String biz, @Param("env") String env, @Param("key") String key);
 
-    public XxlRpcRegistry load(@Param("biz") String biz,
-                               @Param("env") String env,
-                               @Param("key") String key);
+    public int pageListCount(@Param("offset") int offset, @Param("pagesize") int pagesize, @Param("biz") String biz,
+        @Param("env") String env, @Param("key") String key);
+
+    public XxlRpcRegistry load(@Param("biz") String biz, @Param("env") String env, @Param("key") String key);
 
     public XxlRpcRegistry loadById(@Param("id") int id);
 

@@ -1,9 +1,13 @@
 package com.xxl.rpc.core.remoting.net.impl.netty_http.server;
 
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import com.xxl.rpc.core.remoting.net.Server;
 import com.xxl.rpc.core.remoting.net.params.Beat;
 import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
 import com.xxl.rpc.core.util.ThreadPoolUtil;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -15,15 +19,13 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.timeout.IdleStateHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * netty_http
  *
  * @author xuxueli 2015-11-24 22:25:15
  */
-public class NettyHttpServer extends Server  {
+public class NettyHttpServer extends Server {
 
     private Thread thread;
 
@@ -37,33 +39,39 @@ public class NettyHttpServer extends Server  {
 
                 // param
                 final ThreadPoolExecutor serverHandlerPool = ThreadPoolUtil.makeServerThreadPool(
-                        NettyHttpServer.class.getSimpleName(),
-                        xxlRpcProviderFactory.getCorePoolSize(),
-                        xxlRpcProviderFactory.getMaxPoolSize());
+                    NettyHttpServer.class.getSimpleName(), xxlRpcProviderFactory.getProviderConfig().getCorePoolSize(),
+                    xxlRpcProviderFactory.getProviderConfig().getMaxPoolSize());
                 EventLoopGroup bossGroup = new NioEventLoopGroup();
                 EventLoopGroup workerGroup = new NioEventLoopGroup();
 
                 try {
                     // start server
                     ServerBootstrap bootstrap = new ServerBootstrap();
-                    bootstrap.group(bossGroup, workerGroup)
-                            .channel(NioServerSocketChannel.class)
-                            .childHandler(new ChannelInitializer<SocketChannel>() {
-                                @Override
-                                public void initChannel(SocketChannel channel) throws Exception {
-                                    channel.pipeline()
-                                            .addLast(new IdleStateHandler(0, 0, Beat.BEAT_INTERVAL * 3, TimeUnit.SECONDS))  // beat 3N, close if idle
-                                            .addLast(new HttpServerCodec())
-                                            .addLast(new HttpObjectAggregator(5 * 1024 * 1024))  // merge request & reponse to FULL
-                                            .addLast(new NettyHttpServerHandler(xxlRpcProviderFactory, serverHandlerPool));
-                                }
-                            })
-                            .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+                        .childHandler(new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            public void initChannel(SocketChannel channel) throws Exception {
+                                channel.pipeline()
+                                    .addLast(new IdleStateHandler(0, 0, Beat.BEAT_INTERVAL * 3, TimeUnit.SECONDS)) // beat
+                                                                                                                   // 3N,
+                                                                                                                   // close
+                                                                                                                   // if
+                                                                                                                   // idle
+                                    .addLast(new HttpServerCodec()).addLast(new HttpObjectAggregator(5 * 1024 * 1024)) // merge
+                                                                                                                       // request
+                                                                                                                       // &
+                                                                                                                       // reponse
+                                                                                                                       // to
+                                                                                                                       // FULL
+                                    .addLast(new NettyHttpServerHandler(xxlRpcProviderFactory, serverHandlerPool));
+                            }
+                        }).childOption(ChannelOption.SO_KEEPALIVE, true);
 
                     // bind
-                    ChannelFuture future = bootstrap.bind(xxlRpcProviderFactory.getPort()).sync();
+                    ChannelFuture future = bootstrap.bind(xxlRpcProviderFactory.getProviderConfig().getPort()).sync();
 
-                    logger.info(">>>>>>>>>>> xxl-rpc remoting server start success, nettype = {}, port = {}", NettyHttpServer.class.getName(), xxlRpcProviderFactory.getPort());
+                    logger.info(">>>>>>>>>>> xxl-rpc remoting server start success, nettype = {}, port = {}",
+                        NettyHttpServer.class.getName(), xxlRpcProviderFactory.getProviderConfig().getPort());
                     onStarted();
 
                     // wait util stop
@@ -79,7 +87,7 @@ public class NettyHttpServer extends Server  {
 
                     // stop
                     try {
-                        serverHandlerPool.shutdown();	// shutdownNow
+                        serverHandlerPool.shutdown(); // shutdownNow
                     } catch (Exception e) {
                         logger.error(e.getMessage(), e);
                     }
@@ -94,14 +102,15 @@ public class NettyHttpServer extends Server  {
             }
 
         });
-        thread.setDaemon(true);	// daemon, service jvm, user thread leave >>> daemon leave >>> jvm leave
+        // daemon, service jvm, user thread leave >>> daemon leave >>> jvm leave
+        thread.setDaemon(true);
         thread.start();
     }
 
     @Override
     public void stop() throws Exception {
         // destroy server thread
-        if (thread!=null && thread.isAlive()) {
+        if (thread != null && thread.isAlive()) {
             thread.interrupt();
         }
 

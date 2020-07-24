@@ -1,10 +1,10 @@
 package com.xxl.rpc.core.remoting.invoker.route.impl;
 
-import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import com.xxl.rpc.core.remoting.invoker.route.XxlRpcLoadBalance;
 
 /**
  * lru
@@ -13,7 +13,8 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class XxlRpcLoadBalanceLFUStrategy extends XxlRpcLoadBalance {
 
-    private ConcurrentMap<String, HashMap<String, Integer>> jobLfuMap = new ConcurrentHashMap<String, HashMap<String, Integer>>();
+    private ConcurrentMap<String, HashMap<String, Integer>> jobLfuMap =
+        new ConcurrentHashMap<String, HashMap<String, Integer>>();
     private long CACHE_VALID_TIME = 0;
 
     public String doRoute(String serviceKey, TreeSet<String> addressSet) {
@@ -21,32 +22,32 @@ public class XxlRpcLoadBalanceLFUStrategy extends XxlRpcLoadBalance {
         // cache clear
         if (System.currentTimeMillis() > CACHE_VALID_TIME) {
             jobLfuMap.clear();
-            CACHE_VALID_TIME = System.currentTimeMillis() + 1000*60*60*24;
+            CACHE_VALID_TIME = System.currentTimeMillis() + 1000 * 60 * 60 * 24;
         }
 
         // lfu item init
-        HashMap<String, Integer> lfuItemMap = jobLfuMap.get(serviceKey);     // Key排序可以用TreeMap+构造入参Compare；Value排序暂时只能通过ArrayList；
+        HashMap<String, Integer> lfuItemMap = jobLfuMap.get(serviceKey); // Key排序可以用TreeMap+构造入参Compare；Value排序暂时只能通过ArrayList；
         if (lfuItemMap == null) {
             lfuItemMap = new HashMap<String, Integer>();
-            jobLfuMap.putIfAbsent(serviceKey, lfuItemMap);   // 避免重复覆盖
+            jobLfuMap.putIfAbsent(serviceKey, lfuItemMap); // 避免重复覆盖
         }
 
         // put new
-        for (String address: addressSet) {
-            if (!lfuItemMap.containsKey(address) || lfuItemMap.get(address) >1000000 ) {
+        for (String address : addressSet) {
+            if (!lfuItemMap.containsKey(address) || lfuItemMap.get(address) > 1000000) {
                 lfuItemMap.put(address, 0);
             }
         }
 
         // remove old
         List<String> delKeys = new ArrayList<>();
-        for (String existKey: lfuItemMap.keySet()) {
+        for (String existKey : lfuItemMap.keySet()) {
             if (!addressSet.contains(existKey)) {
                 delKeys.add(existKey);
             }
         }
         if (delKeys.size() > 0) {
-            for (String delKey: delKeys) {
+            for (String delKey : delKeys) {
                 lfuItemMap.remove(delKey);
             }
         }

@@ -1,6 +1,5 @@
 package com.xxl.rpc.core.registry;
 
-
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,16 +21,16 @@ public abstract class Register {
      */
     public abstract void stop();
 
-
     /**
      * registry service, for mult
      *
-     * @param keys      service key
-     * @param value     service value/ip:port
+     * @param keys
+     *            service key
+     * @param value
+     *            service value/ip:port
      * @return
      */
     public abstract boolean registry(Set<String> keys, String value);
-
 
     /**
      * remove service, for mult
@@ -53,8 +52,9 @@ public abstract class Register {
     /**
      * discovery service, for one
      *
-     * @param key   service key
-     * @return      service value/ip:port
+     * @param key
+     *            service key
+     * @return service value/ip:port
      */
     public abstract TreeSet<String> discovery(String key);
 

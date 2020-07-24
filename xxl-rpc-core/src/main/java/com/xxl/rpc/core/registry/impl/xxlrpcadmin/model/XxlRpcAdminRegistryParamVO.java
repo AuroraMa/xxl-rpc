@@ -7,11 +7,9 @@ import java.util.List;
  */
 public class XxlRpcAdminRegistryParamVO {
 
-
     private String accessToken;
     private String biz;
     private String env;
-
 
     private List<XxlRpcAdminRegistryDataParamVO> registryDataList;
     private List<String> keys;

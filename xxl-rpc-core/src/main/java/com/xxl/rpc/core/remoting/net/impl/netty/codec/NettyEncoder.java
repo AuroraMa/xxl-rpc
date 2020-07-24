@@ -1,10 +1,10 @@
 package com.xxl.rpc.core.remoting.net.impl.netty.codec;
 
+import com.xxl.rpc.core.serialize.Serializer;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-
-import com.xxl.rpc.core.serialize.Serializer;
 
 /**
  * encoder

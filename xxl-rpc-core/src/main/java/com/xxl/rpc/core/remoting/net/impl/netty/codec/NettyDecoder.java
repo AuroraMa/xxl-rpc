@@ -1,11 +1,12 @@
 package com.xxl.rpc.core.remoting.net.impl.netty.codec;
 
+import java.util.List;
+
 import com.xxl.rpc.core.serialize.Serializer;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-
-import java.util.List;
 
 /**
  * decoder
@@ -34,7 +35,7 @@ public class NettyDecoder extends ByteToMessageDecoder {
         }
         if (in.readableBytes() < dataLength) {
             in.resetReaderIndex();
-            return;	// fix 1024k buffer splice limix
+            return; // fix 1024k buffer splice limix
         }
         byte[] data = new byte[dataLength];
         in.readBytes(data);

@@ -1,19 +1,19 @@
 package com.xxl.rpc.admin.test.client;
 
-
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.XxlRpcAdminRegistryClient;
-import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.XxlRpcAdminRegistryClient;
+import com.xxl.rpc.core.registry.impl.xxlrpcadmin.model.XxlRpcAdminRegistryDataParamVO;
+
 public class XxlRpcAdminRegistryClientTest {
 
     public static void main(String[] args) throws InterruptedException {
-        XxlRpcAdminRegistryClient registryClient = new XxlRpcAdminRegistryClient("http://localhost:8080/xxl-rpc-admin/", null, "xxl-rpc", "test");
+        XxlRpcAdminRegistryClient registryClient =
+            new XxlRpcAdminRegistryClient("http://localhost:8080/xxl-rpc-admin/", null, "xxl-rpc", "test");
 
         // registry test
         List<XxlRpcAdminRegistryDataParamVO> registryDataList = new ArrayList<>();

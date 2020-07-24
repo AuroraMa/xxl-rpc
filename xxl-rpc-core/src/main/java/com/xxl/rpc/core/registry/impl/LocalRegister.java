@@ -1,11 +1,11 @@
 package com.xxl.rpc.core.registry.impl;
 
-import com.xxl.rpc.core.registry.Register;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import com.xxl.rpc.core.registry.Register;
 
 /**
  * application registry for "local"
@@ -19,9 +19,9 @@ public class LocalRegister extends Register {
      */
     private Map<String, TreeSet<String>> registryData;
 
-
     /**
-     * @param param ignore, not use
+     * @param param
+     *            ignore, not use
      */
     @Override
     public void start(Map<String, String> param) {
@@ -33,10 +33,9 @@ public class LocalRegister extends Register {
         registryData.clear();
     }
 
-
     @Override
     public boolean registry(Set<String> keys, String value) {
-        if (keys==null || keys.size()==0 || value==null || value.trim().length()==0) {
+        if (keys == null || keys.size() == 0 || value == null || value.trim().length() == 0) {
             return false;
         }
         for (String key : keys) {
@@ -52,7 +51,7 @@ public class LocalRegister extends Register {
 
     @Override
     public boolean remove(Set<String> keys, String value) {
-        if (keys==null || keys.size()==0 || value==null || value.trim().length()==0) {
+        if (keys == null || keys.size() == 0 || value == null || value.trim().length() == 0) {
             return false;
         }
         for (String key : keys) {
@@ -66,7 +65,7 @@ public class LocalRegister extends Register {
 
     @Override
     public Map<String, TreeSet<String>> discovery(Set<String> keys) {
-        if (keys==null || keys.size()==0) {
+        if (keys == null || keys.size() == 0) {
             return null;
         }
         Map<String, TreeSet<String>> registryDataTmp = new HashMap<String, TreeSet<String>>();

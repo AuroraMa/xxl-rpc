@@ -7,6 +7,6 @@ import com.xxl.rpc.sample.api.dto.UserDTO;
  */
 public interface DemoService {
 
-	public UserDTO sayHi(String name);
+    public UserDTO sayHi(String name);
 
 }

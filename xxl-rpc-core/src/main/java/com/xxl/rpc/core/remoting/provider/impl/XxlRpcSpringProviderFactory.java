@@ -1,31 +1,33 @@
 package com.xxl.rpc.core.remoting.provider.impl;
 
-import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
-import com.xxl.rpc.core.remoting.provider.annotation.XxlRpcService;
-import com.xxl.rpc.core.util.XxlRpcException;
+import java.util.Map;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import java.util.Map;
+import com.xxl.rpc.core.remoting.provider.XxlRpcProviderFactory;
+import com.xxl.rpc.core.remoting.provider.annotation.XxlRpcService;
+import com.xxl.rpc.core.util.XxlRpcException;
 
 /**
  * xxl-rpc provider (for spring)
  *
  * @author xuxueli 2018-10-18 18:09:20
  */
-public class XxlRpcSpringProviderFactory extends XxlRpcProviderFactory implements ApplicationContextAware, InitializingBean,DisposableBean {
+public class XxlRpcSpringProviderFactory extends XxlRpcProviderFactory
+    implements ApplicationContextAware, InitializingBean, DisposableBean {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 
         Map<String, Object> serviceBeanMap = applicationContext.getBeansWithAnnotation(XxlRpcService.class);
-        if (serviceBeanMap!=null && serviceBeanMap.size()>0) {
+        if (serviceBeanMap != null && serviceBeanMap.size() > 0) {
             for (Object serviceBean : serviceBeanMap.values()) {
                 // valid
-                if (serviceBean.getClass().getInterfaces().length ==0) {
+                if (serviceBean.getClass().getInterfaces().length == 0) {
                     throw new XxlRpcException("xxl-rpc, service(XxlRpcService) must inherit interface.");
                 }
                 // add service

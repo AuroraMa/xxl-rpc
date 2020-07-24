@@ -8,11 +8,11 @@ import java.util.Date;
 public class XxlRpcRegistryData {
 
     private int id;
-    private String biz;         // 业务标识
-    private String env;         // 环境标识
-    private String key;         // 注册Key
-    private String value;       // 注册Value
-    private Date updateTime;    // 更新时间
+    private String biz; // 业务标识
+    private String env; // 环境标识
+    private String key; // 注册Key
+    private String value; // 注册Value
+    private Date updateTime; // 更新时间
 
     public int getId() {
         return id;

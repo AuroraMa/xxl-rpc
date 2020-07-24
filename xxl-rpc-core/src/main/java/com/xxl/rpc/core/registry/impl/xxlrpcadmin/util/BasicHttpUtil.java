@@ -1,13 +1,13 @@
 package com.xxl.rpc.core.registry.impl.xxlrpcadmin.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author xuxueli 2018-11-25 00:55:31
@@ -29,7 +29,7 @@ public class BasicHttpUtil {
         try {
             // connection
             URL realUrl = new URL(url);
-            connection = (HttpURLConnection) realUrl.openConnection();
+            connection = (HttpURLConnection)realUrl.openConnection();
 
             // connection setting
             connection.setRequestMethod("POST");
@@ -61,7 +61,7 @@ public class BasicHttpUtil {
             // valid StatusCode
             int statusCode = connection.getResponseCode();
             if (statusCode != 200) {
-                throw new RuntimeException("http request StatusCode("+ statusCode +") invalid. for url : " + url);
+                throw new RuntimeException("http request StatusCode(" + statusCode + ") invalid. for url : " + url);
             }
 
             // result
@@ -93,7 +93,8 @@ public class BasicHttpUtil {
      * get
      *
      * @param url
-     * @param timeout second
+     * @param timeout
+     *            second
      * @return
      */
     public static String get(String url, int timeout) {
@@ -102,7 +103,7 @@ public class BasicHttpUtil {
         try {
             // connection
             URL realUrl = new URL(url);
-            connection = (HttpURLConnection) realUrl.openConnection();
+            connection = (HttpURLConnection)realUrl.openConnection();
 
             // connection setting
             connection.setRequestMethod("GET");
@@ -118,12 +119,12 @@ public class BasicHttpUtil {
             // do connection
             connection.connect();
 
-            //Map<String, List<String>> map = connection.getHeaderFields();
+            // Map<String, List<String>> map = connection.getHeaderFields();
 
             // valid StatusCode
             int statusCode = connection.getResponseCode();
             if (statusCode != 200) {
-                throw new RuntimeException("Http Request StatusCode("+ statusCode +") Invalid.");
+                throw new RuntimeException("Http Request StatusCode(" + statusCode + ") Invalid.");
             }
 
             // result
